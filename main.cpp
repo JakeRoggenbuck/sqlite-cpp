@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <sqlite3.h>
 
 const std::string create_users_str =
@@ -12,7 +13,7 @@ const std::string create_tasks_str =
     "CREATE TABLE TASKS("
     "TaskId INT PRIMARY KEY	NOT NULL, "
     "Message TEXT		NOT NULL, "
-	"UserId	INT			NOT NULL, "
+    "UserId	INT			NOT NULL, "
     "FOREIGN KEY(UserId) REFERENCES USER(UserId));";
 
 void create_table(sqlite3 *DB, std::string create_str) {
@@ -29,10 +30,17 @@ void create_table(sqlite3 *DB, std::string create_str) {
     }
 }
 
+void create_database(sqlite3 *DB) {
+	create_table(DB, create_users_str);
+	create_table(DB, create_tasks_str);
+}
+
 int main(int argc, char **argv) {
     sqlite3 *DB;
     int exit;
-    int status;
+
+	std::filesystem::path f{"./example.db"};
+	int existed = std::filesystem::exists(f);
 
     exit = sqlite3_open("example.db", &DB);
 
@@ -43,8 +51,9 @@ int main(int argc, char **argv) {
         std::cout << "Opened database successfully!" << '\n';
     }
 
-    create_table(DB, create_users_str);
-    create_table(DB, create_tasks_str);
+	if (!existed) {
+		create_database(DB);
+	}
 
     sqlite3_close(DB);
     return 0;
